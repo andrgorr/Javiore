@@ -1,0 +1,6 @@
+db:
+  host: 198.20.102.82
+  port: 3306
+  database: mc101695
+  username: mc101695
+  password: c8309cf003

@@ -1,0 +1,7 @@
+.idea/
+dependency-reduced-pom.xml
+.floo
+.flooignore
+out/
+target/
+Javiore.iml
