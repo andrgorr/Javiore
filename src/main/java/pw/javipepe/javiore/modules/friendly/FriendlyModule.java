@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import pw.javipepe.javiore.Handler;
 import pw.javipepe.javiore.Javiore;
+import pw.javipepe.javiore.modules.Databaseable;
 import pw.javipepe.javiore.modules.DevelopmentStatus;
 import pw.javipepe.javiore.modules.Module;
 import pw.javipepe.javiore.modules.friendly.commands.FriendCmds;
@@ -24,9 +25,14 @@ import java.util.logging.Level;
  * <p>
  * Class created on 8/07/16 as part of project Javiore
  **/
-public class FriendlyModule extends Module {
+public class FriendlyModule extends Module implements Databaseable {
 
     @Getter public static Connection dbConnection = null;
+
+    @Override
+    public void connectDB (Connection connection) {
+        dbConnection = connection;
+    }
 
     public Class[] commands = {
             FriendCmds.class
@@ -40,24 +46,6 @@ public class FriendlyModule extends Module {
         Handler h = new Handler();
         h.stageCommands(commands);
         h.stageListeners(listeners);
-
-        if (!Javiore.isConnectedToDb()) {
-            //DATABASE
-            try {
-                FileConfiguration config = Javiore.instance().getConfig();
-                String host = config.getString("db.host");
-                String port = config.getString("db.port");
-                String name = config.getString("db.database");
-                String user = config.getString("db.username");
-                String pass = config.getString("db.password");
-
-                MySQL sql = new MySQL(host, port, name, user, pass);
-                dbConnection = sql.openConnection();
-                Javiore.setConnectedToDb(true);
-            } catch (SQLException | ClassNotFoundException e) {
-                Javiore.instance().getLogger().log(Level.SEVERE, "Unable to connect to database.");
-            }
-        }
     }
 
     /**

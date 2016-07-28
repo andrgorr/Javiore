@@ -4,6 +4,7 @@ package pw.javipepe.javiore.modules;
 import org.bukkit.ChatColor;
 import pw.javipepe.javiore.Javiore;
 
+import java.sql.Connection;
 import java.sql.SQLException;
 
 /**
@@ -33,6 +34,13 @@ public class Module {
      * @return Module's dev status
      */
     public DevelopmentStatus getStatus() { return DevelopmentStatus.UNKNOWN; }
+
+    /**
+     * Connects connection to DB
+     * @param connection
+     */
+    public void connectDB(Connection connection) {}
+
 
     /**
      * @return Formatted info on module

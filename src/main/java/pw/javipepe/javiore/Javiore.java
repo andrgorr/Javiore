@@ -7,16 +7,21 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import pw.javipepe.javiore.commands.JavioreCmd;
+import pw.javipepe.javiore.modules.Databaseable;
 import pw.javipepe.javiore.modules.DevelopmentStatus;
 import pw.javipepe.javiore.modules.Module;
 import pw.javipepe.javiore.modules.faceRecognition.FaceRecognitionModule;
 import pw.javipepe.javiore.modules.friendly.FriendlyModule;
 import pw.javipepe.javiore.modules.functions.FunctionsModule;
 import pw.javipepe.javiore.modules.rankManager.RankManagerModule;
+import pw.javipepe.javiore.mysql.mysql.MySQL;
 
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -69,17 +74,50 @@ public class Javiore extends JavaPlugin {
                 new RankManagerModule()
         };
 
+        List<Module> modulesToConnectToDB = new ArrayList<>();
+
         for (Module module : modules) {
             moduleList.add(module);
             if(!disabledModuleList.contains(module)) {
                 module.init();
                 Bukkit.getLogger().log(Level.INFO , "Started module " + module.getName().toUpperCase());
+                if (isDatabaseable(module)) {
+                    modulesToConnectToDB.add(module);
+                }
             }
         }
 
+        Connection masterConnection = null;
+
+        if (!Javiore.isConnectedToDb()) {
+            try {
+                FileConfiguration config = Javiore.instance().getConfig();
+                String host = config.getString("db.host");
+                String port = config.getString("db.port");
+                String name = config.getString("db.database");
+                String user = config.getString("db.username");
+                String pass = config.getString("db.password");
+
+                MySQL sql = new MySQL(host, port, name, user, pass);
+                masterConnection = sql.openConnection();
+                Javiore.setConnectedToDb(true);
+            } catch (SQLException | ClassNotFoundException e) {
+                Javiore.instance().getLogger().log(Level.SEVERE, "Unable to connect to database.");
+            }
+        }
+
+        if (masterConnection != null) {
+            for (Module dbmodule : modulesToConnectToDB) {
+                dbmodule.connectDB(masterConnection);
+            }
+        }
 
         handler.registerCommands(Handler.getStagedCommandClasses());
         handler.registerListeners(Handler.getStagedListeners());
+    }
+
+    private static boolean isDatabaseable(Module object){
+        return Databaseable.class.isInstance(object);
     }
 
     /**
